@@ -1,13 +1,11 @@
 services:
   redis:
-    image: redis:7.4.2-alpine
+    build: redis
     command: >
       redis-server /usr/local/etc/redis/redis.conf 
       --requirepass ${REDIS_PASSWORD}
     environment:
       - REDIS_PASSWORD=${REDIS_PASSWORD}
-    volumes:
-      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
   
   backend:
     build: backend
@@ -39,13 +37,11 @@ services:
       start_period: 5s
 
   nginx:
-    image: nginx:alpine
+    build: nginx
     depends_on:
       - redis
       - frontend
       - backend
-    volumes:
-    - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
     ports:
       - 80:80

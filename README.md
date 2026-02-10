@@ -21,8 +21,9 @@ This application uses **OpenID Connect (OIDC)** for authentication. By default, 
 ### Setting up Authentication
 
 1. Create an OIDC application in your provider (e.g., Pocket ID)
-2. Set the redirect URI to: `http://localhost/callback` (or your production domain)
-3. Update `.env` with your credentials.
+2. Set the **callback URI** to: `http://localhost/callback` (or your production domain)
+3. Set the **post-logout redirect URI** to: `http://localhost/` (or your production domain)
+4. Update `.env` with your credentials.
 
 **Note:** The `openid profile email groups` scopes are requested, and the `groups` claim is used to determine user roles in the application.
 
