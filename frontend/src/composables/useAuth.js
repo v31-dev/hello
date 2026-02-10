@@ -60,7 +60,7 @@ export function useAuth() {
   }
 
   const getUserName = () => {
-    return user.value?.profile?.name || user.value?.profile?.preferred_username || 'Unknown'
+    return user.value?.profile?.preferred_username || 'Unknown'
   }
 
   return {

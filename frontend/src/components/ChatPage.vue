@@ -67,16 +67,23 @@ server.connectionHandler(() => {
       <v-footer app>
         <v-text-field
             v-model="message"
-            append-icon="mdi-send"
             clear-icon="mdi-close-circle"
             label="Message"
             type="text"
             clearable
             @keypress.enter="message == '' ? null : sendMessage(message)"
-            @click:append="sendMessage(message)"
             @click:clear="message = ''"
             class="align-center justify-center"
-          ></v-text-field>
+          >
+            <template #append>
+              <v-btn
+                icon="mdi-send"
+                variant="text"
+                :disabled="message.trim() === ''"
+                @click="sendMessage(message)"
+              />
+            </template>
+          </v-text-field>
       </v-footer>
     </v-container>
   </v-main>

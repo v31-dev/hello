@@ -58,7 +58,7 @@
         </v-card>
         <v-card v-else>
           <template v-slot:title>
-            <span class="font-weight-black">Redirecting to login...</span>
+            <span class="font-weight-black">Loading...</span>
           </template>
           <v-card-text>
             <v-progress-linear indeterminate />
