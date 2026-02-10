@@ -1,14 +1,23 @@
 services:
+  redis:
+    image: redis:7.4.2-alpine
+    command: >
+      redis-server /usr/local/etc/redis/redis.conf 
+      --requirepass ${REDIS_PASSWORD}
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    volumes:
+      - ./redis.conf:/usr/local/etc/redis/redis.conf:ro
+  
   backend:
     build: backend
+    depends_on:
+      - redis
     restart: unless-stopped
     environment:
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_USER=${REDIS_USER}
-      - REDIS_PASSWORD=${REDIS_PASSWORD}
-      - KEYCLOAK_URL=${KEYCLOAK_URL}
-      - KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
-      - SERVICE=${SERVICE}
+      - REDIS_URL=redis://default:${REDIS_PASSWORD}@redis:6379
+      - AUTH_URL=${AUTH_URL}
+      - AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:4000/ || exit 1" ]
       start_period: 5s
@@ -19,22 +28,24 @@ services:
       context: frontend
       target: production
     depends_on:
+      - redis
       - backend
     restart: unless-stopped
     environment:
-      - VITE_KEYCLOAK_URL=${KEYCLOAK_URL}
-      - VITE_KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID}
+      - VITE_AUTH_URL=${AUTH_URL}
+      - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1" ]
       start_period: 5s
 
   nginx:
     image: nginx:alpine
+    depends_on:
+      - redis
+      - frontend
+      - backend
     volumes:
     - ./nginx.conf:/etc/nginx/nginx.conf:ro
     restart: unless-stopped
     ports:
       - 80:80
-    environment:
-      - KEYCLOAK_URL=${KEYCLOAK_URL}
-    

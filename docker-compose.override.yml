@@ -7,9 +7,6 @@ services:
           target: /app
           ignore:
             - node_modules/
-    network_mode: service:nginx
-    depends_on:
-      - redis
 
   frontend:
     build:
@@ -22,11 +19,3 @@ services:
           target: /app
           ignore:
             - node_modules/
-    network_mode: service:nginx
-
-  redis:
-    image: redis:7.4.2-alpine
-    command: redis-server /usr/local/etc/redis/redis.conf
-    volumes:
-      - ./redis.local.conf:/usr/local/etc/redis/redis.conf:ro
-    network_mode: service:nginx
