@@ -1,31 +1,57 @@
 # Hello Chat
 
-A simple chat application using NodeJS, socket.io and redis.
-This is a docker compose application with components -
+A simple Docker Compose chat application using NodeJS, Vue 3, Socket.io and Redis with OpenID Connect authentication.
 
-- frontend - Made using [Vue](https://vuejs.org/).
+## Architecture
 
-- backend - Made using express and [socket.io](https://socket.io/) for websocket communication.
+**Docker Compose Services:**
+- **frontend** - Vue 3 application with Vuetify UI framework
+- **backend** - Express.js server with Socket.io for real-time chat
+- **nginx** - Reverse proxy routing frontend and backend from a single origin
+- **redis** - Redis adapter for Socket.io pub/sub to relay messages across backend instances
 
-- nginx - Reverse proxy to have a single server for the frontend and backend components. Config is in [nginx.conf](nginx.conf).
+**External Services:**
+- **OIDC Provider** - Any OpenID Connect provider (e.g., Pocket ID, Auth0, Okta) for authentication
 
-- redis - Socket.io [redis adapter](https://socket.io/docs/v4/redis-adapter/) is used with pub/sub to relay chat messages across multiple instances. Redis is not a part of the `docker-compose.yml` and an external service is used with a user having ACL like -
-  ```config
-  user hello on #${REDIS_USER_HELLO_PASSWORD_HASH} -@all +@connection +@read +@write +@pubsub ~hello:* &hello:* &hello:socket.io#/#*`
-  ```
-  The `&hello:socket.io#/#*` channel is what is required by the redis adapter.
-  Redis password hash can be generated in bash like -
-  ```bash
-  REDIS_USER_HELLO_PASSWORD_HASH=$(echo -n "$REDIS_PASSWORD"} | sha256sum | head -c 64)
-  ```
+## Authentication
 
-- External services - [Keycloak](https://www.keycloak.org/) is used as an IDP.
+This application uses **OpenID Connect (OIDC)** for authentication. By default, it's configured for [Pocket ID](https://github.com/pocket-id/pocket-id) but can easily be switched to any OIDC provider.
+
+### Setting up Authentication
+
+1. Create an OIDC application in your provider (e.g., Pocket ID)
+2. Set the redirect URI to: `http://localhost/callback` (or your production domain)
+3. Update `.env` with your credentials.
+
+**Note:** The `openid profile email groups` scopes are requested, and the `groups` claim is used to determine user roles in the application.
 
 ## Local Development
 
-A `.devcontainer` configuration is enabled which provides a docker environment.
-Maintain the redis credentials in the `sample.env` file (rename it to `.env`). And then run - 
-```
+### Prerequisites
+- Docker and Docker Compose installed
+- A `.devcontainer` configuration is available as well.
+- `.env` file configured using `sample.env`
+
+### Running the App
+
+```bash
 docker compose up --build
-``` 
-Watch and local development parameters are enabled in the `docker-compose.override.yml` file. The applciation is served on `http://localhost:80`. A dummy redis instance is also created.
+```
+
+The application will be available at `http://localhost:80`. Access is routed through Nginx, which sits in front of both the frontend and backend components.
+
+### Development Features
+
+- **Backend hot-reload** - Changes trigger auto-restart
+- **Frontend hot-reload** - Vue components hot-reload without restart (via Vite)
+
+The `docker-compose.override.yml` file enables these features automatically.
+
+## Production Deployment
+
+For production, remove the override file:
+```bash
+docker compose -f docker-compose.yml up --build
+```
+
+Ensure the required environment variables from `sample.env` are set in your production environment.
