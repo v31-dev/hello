@@ -15,8 +15,10 @@
       isProcessing.value = true
       try {
         await handleCallback()
-        // Callback successful, redirect to home
-        window.history.replaceState({}, document.title, '/')
+        // Give localStorage a moment to persist, then do a simple redirect
+        setTimeout(() => {
+          window.location.href = '/'
+        }, 100)
       } catch (err) {
         error.value = 'Login failed. Please try again.'
         console.error('Callback error:', err)

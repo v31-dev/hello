@@ -9,6 +9,7 @@
   const { isAuthenticated, getUserName, getToken, logout } = useAuth()
   const theme = ref('dark')
   const server = useServerStore()
+  const isLoggingOut = ref(false)
   const page = computed(() => (isAuthenticated.value && server.connected) ? ChatPage : LoginPage)
   const statusSnackbar = ref(false)
 
@@ -17,6 +18,7 @@
   }
 
   function onClickLogout() {
+    isLoggingOut.value = true
     server.logout()
     logout()
   }
@@ -43,7 +45,7 @@
       <v-spacer></v-spacer>
       <v-btn :prepend-icon="theme === 'light' ? 'mdi-weather-sunny' : 'mdi-weather-night'"  
         slim @click="onClickTheme"/>
-      <v-btn v-if="server.username != ''" :prepend-icon="'mdi-logout'"  slim @click="onClickLogout"/>
+      <v-btn v-if="server.username != ''" :prepend-icon="'mdi-logout'" :loading="isLoggingOut" slim @click="onClickLogout"/>
     </v-app-bar>
 
     <component :is="page" />
