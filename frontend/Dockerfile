@@ -1,8 +1,5 @@
 FROM node:lts-alpine AS base
 
-# install simple http server for serving static content
-RUN npm install -g http-server
-
 # make the 'app' folder the current working directory
 WORKDIR /app
 
@@ -41,5 +38,5 @@ ENV VITE_AUTH_CLIENT_ID=$VITE_AUTH_CLIENT_ID
 
 RUN npm run build
 
-CMD [ "http-server", "dist", "-S" ]
+CMD [ "node", "server.js" ]
 ################################################################################
