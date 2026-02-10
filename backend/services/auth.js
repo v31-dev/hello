@@ -5,7 +5,7 @@ const AUTH_CLIENT_ID = process.env.AUTH_CLIENT_ID
 const AUTH_URL = process.env.AUTH_URL
 
 // JWKS Client setup
-const client = JwksClient({
+const client = new JwksClient({
   jwksUri: `${AUTH_URL}/.well-known/jwks.json`,
   cache: true,
   rateLimit: true,

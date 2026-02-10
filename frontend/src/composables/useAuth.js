@@ -55,7 +55,7 @@ export function useAuth() {
   }
 
   const getToken = () => {
-    return user.value?.access_token || null
+    return user.value?.id_token || null
   }
 
   const getUserName = () => {

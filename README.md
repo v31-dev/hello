@@ -1,6 +1,7 @@
 # Hello Chat
 
 A simple Docker Compose chat application using NodeJS, Vue 3, Socket.io and Redis with OpenID Connect authentication.
+There is no message persistence implemented.
 
 ## Architecture
 
