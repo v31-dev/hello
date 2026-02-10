@@ -1,5 +1,4 @@
 import { createApp } from 'vue'
-import VueKeycloak from '@dsb-norge/vue-keycloak-js'
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
@@ -10,6 +9,10 @@ import { createPinia } from 'pinia'
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 
 import App from './App.vue'
+import { useAuth } from './composables/useAuth'
+
+// Initialize auth
+const { getUser } = useAuth()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -21,23 +24,9 @@ const vuetify = createVuetify({
 
 const app = createApp(App)
 
- app.use(VueKeycloak, {
-  init: {
-    onLoad: 'login-required',
-    checkLoginIframe: false
-  },
-  config: {
-    url: import.meta.env.VITE_KEYCLOAK_URL,
-    realm: 'default',
-    clientId: import.meta.env.VITE_KEYCLOAK_CLIENT_ID,
-  },
-  onInitError: (error) => console.error('Keycloak initialization error:', error),
-  onReady: (keycloak) => {
-    if (!keycloak.hasResourceRole('access')) {
-      keycloak.logout()
-    }
-    app.mount('#app')
-  }
+// Load existing session before mounting
+getUser().then(() => {
+  app.use(pinia)
+  app.use(vuetify)
+  app.mount('#app')
 })
-app.use(pinia)  
-app.use(vuetify)

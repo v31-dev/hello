@@ -1,31 +1,34 @@
 <script setup>
-  import { useKeycloak } from '@dsb-norge/vue-keycloak-js'
+  import { useAuth } from '@/composables/useAuth'
   import { computed, ref } from 'vue'
   import { useServerStore } from '@/stores/server'
-  
+
   import LoginPage from './components/LoginPage.vue'
   import ChatPage from './components/ChatPage.vue'
 
-  const { token, userName, keycloak } = useKeycloak()
+  const { isAuthenticated, getUserName, getToken, logout } = useAuth()
   const theme = ref('dark')
   const server = useServerStore()
-  const page = computed(() => server.connected ? ChatPage : LoginPage)
+  const page = computed(() => (isAuthenticated.value && server.connected) ? ChatPage : LoginPage)
   const statusSnackbar = ref(false)
 
-  function onClickTheme () {
+  function onClickTheme() {
     theme.value = theme.value === 'light' ? 'dark' : 'light'
   }
 
-  function onClickLogout () {
+  function onClickLogout() {
     server.logout()
-    keycloak.logout()
+    logout()
   }
 
-  function onClickStatus () {
+  function onClickStatus() {
     statusSnackbar.value = true
   }
 
-  server.init(userName, token)
+  // Initialize server store with auth data
+  if (isAuthenticated.value) {
+    server.init(getUserName(), getToken())
+  }
 </script>
 
 <template>

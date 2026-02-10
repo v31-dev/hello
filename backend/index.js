@@ -2,7 +2,6 @@ import { config } from 'dotenv'
 config()
 import express from 'express'
 import { createServer } from 'node:http'
-import cors from 'cors'
 import morgan from 'morgan'
 import cookieParser from 'cookie-parser'
 
@@ -14,7 +13,6 @@ import userRouter from './routes/user.js'
 const app = express()
 const server = createServer(app)
 
-app.use(cors())
 app.use(morgan('combined'))
 app.use(cookieParser())
 
