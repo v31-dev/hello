@@ -41,5 +41,5 @@ ENV VITE_AUTH_CLIENT_ID=$VITE_AUTH_CLIENT_ID
 
 RUN npm run build
 
-CMD [ "http-server", "dist" ]
+CMD [ "http-server", "dist", "-S" ]
 ################################################################################
