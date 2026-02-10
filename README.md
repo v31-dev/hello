@@ -56,4 +56,6 @@ For production, remove the override file:
 docker compose -f docker-compose.yml up --build
 ```
 
+**Note:** Example production scenario: Deployed via Dokploy with Cloudflare Tunnel for HTTPS/TLS and traffic routing. The application listens on port 80 as the entrypoint. 
+
 Ensure the required environment variables from `sample.env` are set in your production environment.

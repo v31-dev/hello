@@ -19,3 +19,7 @@ services:
           target: /app
           ignore:
             - node_modules/
+
+  nginx:
+    ports:
+      - 80:80
