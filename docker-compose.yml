@@ -25,13 +25,13 @@ services:
     build: 
       context: frontend
       target: production
+      args:
+        - VITE_AUTH_URL=${AUTH_URL}
+        - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
     depends_on:
       - redis
       - backend
     restart: unless-stopped
-    environment:
-      - VITE_AUTH_URL=${AUTH_URL}
-      - VITE_AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
     healthcheck:
       test: [ "CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1" ]
       start_period: 5s

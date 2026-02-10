@@ -33,6 +33,12 @@ CMD [ "npm", "run", "dev"]
 ################################################################################
 FROM base AS production
 
+ARG VITE_AUTH_URL
+ARG VITE_AUTH_CLIENT_ID
+
+ENV VITE_AUTH_URL=$VITE_AUTH_URL
+ENV VITE_AUTH_CLIENT_ID=$VITE_AUTH_CLIENT_ID
+
 RUN npm run build
 
 CMD [ "http-server", "dist" ]
