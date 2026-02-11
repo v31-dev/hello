@@ -25,8 +25,6 @@ This application uses **OpenID Connect (OIDC)** for authentication. By default, 
 3. Set the **post-logout redirect URI** to: `http://localhost/` (or your production domain)
 4. Update `.env` with your credentials.
 
-**Note:** The `openid profile email groups` scopes are requested, and the `groups` claim is used to determine user roles in the application.
-
 ## Local Development
 
 ### Prerequisites

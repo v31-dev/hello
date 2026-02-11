@@ -49,14 +49,6 @@ function auth(roles = []) {
 
       console.log(`User verified: ${decoded.preferred_username} (${decoded.name})`)
 
-      // Role check
-      const userRoles = decoded.groups || []
-      for (const role of roles) {
-        if (!userRoles.includes(role)) {
-          return res.status(401).json({ detail: `Role [${role}] is required.` })
-        }
-      }
-
       // Attach decoded token to request if needed
       req.user = decoded
       next()
@@ -104,15 +96,6 @@ function authSocket(roles = []) {
 
       console.log(`User verified: ${decoded.preferred_username} (${decoded.name})`)
 
-      // Role check
-      const userRoles = decoded.groups || []
-      for (const role of roles) {
-        if (!userRoles.includes(role)) {
-          const error = new Error(`Role [${role}] is required.`)
-          error.data = { code: 'ROLE_REQUIRED', message: `Role [${role}] is required.` }
-          return next(error)
-        }
-      }
       req.user = decoded
       next()
     })
