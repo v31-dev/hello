@@ -13,7 +13,7 @@ export default async function websocket(server, authMiddleware) {
 
   const io = new Server(server, {
     path: '/api/ws/',
-    adapter: createAdapter(pubClient, subClient, { key: `${process.env.SERVICE}:socket.io` }),
+    adapter: createAdapter(pubClient, subClient, { key: 'hello:socket.io' }),
   })
 
   // Authenticate Socket.io connections

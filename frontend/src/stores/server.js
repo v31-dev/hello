@@ -70,17 +70,12 @@ export const useServerStore = defineStore('server', () => {
       socket.value.emit('chat', message, ack)
     }
 
-    function receiveMessageHandler(fn) {
-      socket.value.on('chat', fn)
-    }
-
     function addChat(chat) {
       chats.value.push(chat)
     }
 
-
     return { 
       username, name, connected, chats,
-      init, login, logout, sendMessage, receiveMessageHandler, connectionHandler, addChat
+      init, login, logout, sendMessage, connectionHandler, addChat
     }
 })

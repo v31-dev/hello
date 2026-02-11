@@ -14,6 +14,13 @@ async function scrollTochatListBottom() {
 // Scroll to bottom when component mounts (e.g., on reconnect)
 onMounted(() => {
   scrollTochatListBottom()
+  
+  // Register reconnection handler
+  server.connectionHandler(() => {
+    if (server.username) {
+      server.login()
+    }
+  })
 })
 
 // Auto-scroll when new messages arrive
@@ -36,13 +43,6 @@ function sendMessage(pmessage) {
   server.addChat(chat.value)
   message.value = ''
 }
-
-// For re-connection scenarios
-server.connectionHandler(() => {
-  if (server.username) {
-    server.login()
-  }
-})
 </script>
 
 <template>
