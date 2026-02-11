@@ -39,3 +39,15 @@ server.listen(4000, () => {
   console.log('listening for requests on port 4000')
 })
 
+// Graceful shutdown handlers
+const shutdown = () => {
+  console.log('Shutting down gracefully...')
+  server.close(() => {
+    console.log('Server closed')
+    process.exit(0)
+  })
+}
+
+process.on('SIGTERM', shutdown)
+process.on('SIGINT', shutdown)
+
