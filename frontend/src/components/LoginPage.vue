@@ -58,7 +58,7 @@
         </v-card>
         <v-card v-else>
           <template v-slot:title>
-            <span class="font-weight-black">Loading...</span>
+            <div class="text-center font-weight-black">Connecting...</div>
           </template>
           <v-card-text>
             <v-progress-linear indeterminate />

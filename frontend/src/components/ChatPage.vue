@@ -4,12 +4,6 @@ import { ref, useTemplateRef, nextTick } from 'vue';
 
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
-const chats = ref([{
-  self: false,
-  loading: false,
-  user: 'Server',
-  chat: 'Welcome to the chat room! Please be civil and have fun!'
-}])
 const server = useServerStore()
 
 async function scrollTochatListBottom() {
@@ -29,17 +23,10 @@ function sendMessage(pmessage) {
     chat.value.loading = false
   })
   
-  chats.value.push(chat.value)
+  server.addChat(chat.value)
   message.value = ''
   scrollTochatListBottom()
-} 
-
-server.receiveMessageHandler((chat) => {
-  chat.self = false
-  chat.loading = false
-  chats.value.push(chat)
-  scrollTochatListBottom()
-})
+}
 
 // For re-connection scenarios
 server.connectionHandler(() => {
@@ -53,7 +40,7 @@ server.connectionHandler(() => {
   <v-main>
     <v-container>
       <v-col>
-        <v-card v-for="(chat, index) in chats" :key="index"
+        <v-card v-for="(chat, index) in server.chats" :key="index"
           prepend-icon="mdi-account" :color="chat.self ? 'blue' : null"
           :title="chat.user"
           class="mb-4">
