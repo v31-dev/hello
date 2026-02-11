@@ -71,7 +71,7 @@ server.connectionHandler(() => {
             label="Message"
             type="text"
             clearable
-            @keypress.enter="message == '' ? null : sendMessage(message)"
+            @keypress.enter="message.trim() == '' ? null : sendMessage(message)"
             @click:clear="message = ''"
             class="align-center justify-center"
           >
