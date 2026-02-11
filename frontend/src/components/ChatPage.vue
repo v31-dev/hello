@@ -1,6 +1,6 @@
 <script setup>
 import { useServerStore } from '@/stores/server';
-import { ref, useTemplateRef, nextTick } from 'vue';
+import { ref, useTemplateRef, nextTick, watch } from 'vue';
 
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
@@ -10,6 +10,11 @@ async function scrollTochatListBottom() {
   await nextTick()
   chatListBottom.value.$el.scrollIntoView({ behavior: 'smooth' })
 }
+
+// Auto-scroll when new messages arrive
+watch(() => server.chats.length, () => {
+  scrollTochatListBottom()
+})
 
 function sendMessage(pmessage) {
   const chat = ref({
@@ -25,7 +30,6 @@ function sendMessage(pmessage) {
   
   server.addChat(chat.value)
   message.value = ''
-  scrollTochatListBottom()
 }
 
 // For re-connection scenarios
