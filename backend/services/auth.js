@@ -24,7 +24,7 @@ function getKey(header, callback) {
 }
 
 // Auth middleware for Express routes
-function auth(roles = []) {
+function auth() {
   return (req, res, next) => {
     // Get token from Authorization header
     const authHeader = req.headers['authorization']
@@ -57,7 +57,7 @@ function auth(roles = []) {
 }
 
 // Auth middleware for Socket.IO connections
-function authSocket(roles = []) {
+function authSocket() {
   return (req, res, next) => {
     // Only check handshake, not packet requests
     const isHandshake = req._query.sid === undefined
