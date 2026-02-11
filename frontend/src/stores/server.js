@@ -19,10 +19,12 @@ export const useServerStore = defineStore('server', () => {
 
       socket.value = io({ 
         path: '/api/ws/', 
+        transports: ["websocket"],
+        upgrade: false,
         autoConnect: false,
         withCredentials: true,
-        extraHeaders: {
-          Authorization: `Bearer ${token.value}`
+        auth: {
+          token: token.value
         }
       })
 

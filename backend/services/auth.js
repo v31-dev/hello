@@ -58,26 +58,16 @@ function auth() {
 
 // Auth middleware for Socket.IO connections
 function authSocket() {
-  return (req, res, next) => {
-    // Only check handshake, not packet requests
-    const isHandshake = req._query.sid === undefined
-    if (!isHandshake) {
-      return next()
-    }
-
-    // Try to get token from headers or from Socket.IO handshake auth
-    let authHeader = req.headers['authorization']
-    if (!authHeader && req._query && req._query.token) {
-      authHeader = `Bearer ${req._query.token}`
-    }
-
-    if (!authHeader) {
-      const err = new Error('Authorization header missing')
-      err.data = { code: 'AUTH_MISSING', message: 'Authorization header missing' }
+  return (socket, next) => {
+    // Get token from Socket.io handshake auth
+    const token = socket.handshake.auth.token
+    
+    if (!token) {
+      const err = new Error('Authorization token missing')
+      err.data = { code: 'AUTH_MISSING', message: 'Authorization token missing' }
       return next(err)
     }
 
-    const token = authHeader.split(' ')[1]
     jwt.verify(token, getKey, { issuer: AUTH_URL }, (err, decoded) => {
       if (err) {
         const errorMsg = err.name === 'TokenExpiredError' ? 'Token expired' : 'Invalid token'
@@ -96,7 +86,8 @@ function authSocket() {
 
       console.log(`User verified: ${decoded.preferred_username} (${decoded.name})`)
 
-      req.user = decoded
+      // Attach user to socket for later use
+      socket.request.user = decoded
       next()
     })
   }

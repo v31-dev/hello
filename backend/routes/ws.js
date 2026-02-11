@@ -16,13 +16,8 @@ export default async function websocket(server, authMiddleware) {
     adapter: createAdapter(pubClient, subClient, { key: `${process.env.SERVICE}:socket.io` }),
   })
 
-  io.engine.on('initial_headers', (headers) => {
-    // custom header x-server for nginx load balancer sticky session
-    headers['x-server'] = HOST
-  })
-
-  // Middleware to authenticate the user
-  io.engine.use(authMiddleware)
+  // Authenticate Socket.io connections
+  io.use(authMiddleware)
 
   io.on('connection', (socket) => {
     const socketID = socket.id
