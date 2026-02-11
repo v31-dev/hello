@@ -12,7 +12,7 @@ export default async function websocket(server, authMiddleware) {
   await Promise.all([pubClient.connect(), subClient.connect()])
 
   const io = new Server(server, {
-    path: '/ws/',
+    path: '/api/ws/',
     adapter: createAdapter(pubClient, subClient, { key: `${process.env.SERVICE}:socket.io` }),
   })
 

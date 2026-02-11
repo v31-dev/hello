@@ -22,13 +22,13 @@ app.use(cookieParser())
 
 websocket(server, authSocket(['hello']))
 
-// API routes
-app.use('/', rootRouter)
-app.use('/user', auth(['hello']), userRouter)
-
-// Serve static frontend files
+// Serve static frontend files first
 const publicPath = path.join(__dirname, 'public')
 app.use(express.static(publicPath))
+
+// API routes
+app.use('/api', rootRouter)
+app.use('/api/user', auth(['hello']), userRouter)
 
 // SPA fallback - serve index.html for all non-API routes
 app.get('*', (req, res) => {
