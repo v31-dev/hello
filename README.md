@@ -1,31 +1,94 @@
 # Hello Chat
 
-A simple chat application using NodeJS, socket.io and redis.
-This is a docker compose application with components -
+A chat application using Node.js, Vue 3, Socket.io, and Redis with OpenID Connect authentication.
+There is no message persistence implemented.
 
-- frontend - Made using [Vue](https://vuejs.org/).
+## Architecture
 
-- backend - Made using express and [socket.io](https://socket.io/) for websocket communication.
+**Docker Compose Services:**
+- **frontend** - Vue 3 application with Vuetify UI framework
+- **backend** - Express.js server with Socket.io for real-time chat
+- **nginx** - Reverse proxy routing frontend and backend from a single origin
+- **redis** - Redis adapter for Socket.io pub/sub to relay messages across backend instances
 
-- nginx - Reverse proxy to have a single server for the frontend and backend components. Config is in [nginx.conf](nginx.conf).
+**External Services:**
+- **OIDC Provider** - Any OpenID Connect provider (e.g., Pocket ID, Auth0, Okta) for authentication
 
-- redis - Socket.io [redis adapter](https://socket.io/docs/v4/redis-adapter/) is used with pub/sub to relay chat messages across multiple instances. Redis is not a part of the `docker-compose.yml` and an external service is used with a user having ACL like -
-  ```config
-  user hello on #${REDIS_USER_HELLO_PASSWORD_HASH} -@all +@connection +@read +@write +@pubsub ~hello:* &hello:* &hello:socket.io#/#*`
-  ```
-  The `&hello:socket.io#/#*` channel is what is required by the redis adapter.
-  Redis password hash can be generated in bash like -
-  ```bash
-  REDIS_USER_HELLO_PASSWORD_HASH=$(echo -n "$REDIS_PASSWORD"} | sha256sum | head -c 64)
-  ```
+## Authentication
 
-- External services - [Keycloak](https://www.keycloak.org/) is used as an IDP.
+This application uses **OpenID Connect (OIDC)** for authentication. By default, it's configured for [Pocket ID](https://github.com/pocket-id/pocket-id) but can easily be switched to any OIDC provider.
+
+### Setting up Authentication
+
+1. Create an OIDC application in your provider (e.g., Pocket ID)
+2. Set the **callback URI** to: `http://localhost/callback` (or your production domain)
+3. Set the **post-logout redirect URI** to: `http://localhost/` (or your production domain)
+4. Update `.env` with your credentials.
 
 ## Local Development
 
-A `.devcontainer` configuration is enabled which provides a docker environment.
-Maintain the redis credentials in the `sample.env` file (rename it to `.env`). And then run - 
-```
+### Prerequisites
+- Docker and Docker Compose installed
+- A `.devcontainer` configuration is available as well.
+- `.env` file configured using `sample.env`
+
+### Running the App
+
+```bash
 docker compose up --build
-``` 
-Watch and local development parameters are enabled in the `docker-compose.override.yml` file. The applciation is served on `http://localhost:80`. A dummy redis instance is also created.
+```
+
+The application will be available at `http://localhost`. Access is routed through Nginx, which sits in front of both the frontend and backend components.
+
+### Development Features
+
+- **Backend hot-reload** - Changes trigger auto-restart
+- **Frontend hot-reload** - Vue components hot-reload without restart (via Vite)
+
+The local `docker-compose.yml` is only for development - it includes Redis, Nginx, and all dependencies for convenience.
+
+## Production Deployment
+
+### Building the Production Image
+
+The production deployment uses a single optimized Dockerfile that:
+1. Builds the frontend static files (Vue 3 with Vite)
+2. Serves both backend API and frontend static files from a single Node.js process
+3. No nginx required - backend serves everything on port 4000
+
+Build and run:
+
+```bash
+# Build with OIDC credentials
+docker build \
+  --build-arg VITE_AUTH_URL=your-oidc-provider-url \
+  --build-arg VITE_AUTH_CLIENT_ID=your-client-id \
+  -t hello-chat:latest \
+  .
+
+# Run in production
+docker run -d \
+  -p 4000:4000 \
+  -e REDIS_URL=redis://default:password@redis-host:6379 \
+  -e AUTH_URL=your-oidc-provider-url \
+  -e AUTH_CLIENT_ID=your-client-id \
+  hello-chat:latest
+```
+
+### External Dependencies
+
+1. Your own OIDC provider
+2. A Redis instance
+
+### Deploying to Dokploy
+
+1. Add a service of type Application and point to the repository using the Git provider with build type Dockerfile.
+2. Add **Build Arguments** in the Environment tab:
+   - `VITE_AUTH_URL` - Your OIDC provider URL
+   - `VITE_AUTH_CLIENT_ID` - Your OIDC client ID
+3. Set **Environment Variables** in the Environment tab:
+   - `REDIS_URL` - Full Redis connection string (e.g., `redis://user:pass@host:6379`)
+   - `AUTH_URL` - OIDC provider base URL
+   - `AUTH_CLIENT_ID` - OIDC client ID
+4. Map a domain to port 4000.
+5. Deploy

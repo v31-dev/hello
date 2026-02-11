@@ -1,21 +1,32 @@
 <script setup>
 import { useServerStore } from '@/stores/server';
-import { ref, useTemplateRef, nextTick } from 'vue';
+import { ref, useTemplateRef, nextTick, watch, onMounted } from 'vue';
 
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
-const chats = ref([{
-  self: false,
-  loading: false,
-  user: 'Server',
-  chat: 'Welcome to the chat room! Please be civil and have fun!'
-}])
 const server = useServerStore()
 
 async function scrollTochatListBottom() {
   await nextTick()
   chatListBottom.value.$el.scrollIntoView({ behavior: 'smooth' })
 }
+
+// Scroll to bottom when component mounts (e.g., on reconnect)
+onMounted(() => {
+  scrollTochatListBottom()
+  
+  // Register reconnection handler
+  server.connectionHandler(() => {
+    if (server.username) {
+      server.login()
+    }
+  })
+})
+
+// Auto-scroll when new messages arrive
+watch(() => server.chats.length, () => {
+  scrollTochatListBottom()
+})
 
 function sendMessage(pmessage) {
   const chat = ref({
@@ -29,31 +40,16 @@ function sendMessage(pmessage) {
     chat.value.loading = false
   })
   
-  chats.value.push(chat.value)
+  server.addChat(chat.value)
   message.value = ''
-  scrollTochatListBottom()
-} 
-
-server.receiveMessageHandler((chat) => {
-  chat.self = false
-  chat.loading = false
-  chats.value.push(chat)
-  scrollTochatListBottom()
-})
-
-// For re-connection scenarios
-server.connectionHandler(() => {
-  if (server.username) {
-    server.login()
-  }
-})
+}
 </script>
 
 <template>
   <v-main>
     <v-container>
       <v-col>
-        <v-card v-for="(chat, index) in chats" :key="index"
+        <v-card v-for="(chat, index) in server.chats" :key="index"
           prepend-icon="mdi-account" :color="chat.self ? 'blue' : null"
           :title="chat.user"
           class="mb-4">
@@ -67,16 +63,23 @@ server.connectionHandler(() => {
       <v-footer app>
         <v-text-field
             v-model="message"
-            append-icon="mdi-send"
             clear-icon="mdi-close-circle"
             label="Message"
             type="text"
             clearable
-            @keypress.enter="message == '' ? null : sendMessage(message)"
-            @click:append="sendMessage(message)"
+            @keypress.enter="message.trim() == '' ? null : sendMessage(message)"
             @click:clear="message = ''"
             class="align-center justify-center"
-          ></v-text-field>
+          >
+            <template #append>
+              <v-btn
+                icon="mdi-send"
+                variant="text"
+                :disabled="message.trim() === ''"
+                @click="sendMessage(message)"
+              />
+            </template>
+          </v-text-field>
       </v-footer>
     </v-container>
   </v-main>

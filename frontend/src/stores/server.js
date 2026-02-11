@@ -1,4 +1,3 @@
-import axios from 'axios'
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { io } from 'socket.io-client'
@@ -10,6 +9,12 @@ export const useServerStore = defineStore('server', () => {
     const hostname = ref('')
     const connected = ref(false)   
     const socket = ref('')
+    const chats = ref([{
+      self: false,
+      loading: false,
+      user: 'Server',
+      chat: 'Welcome to the chat room! Please be civil and have fun!'
+    }])
   
     const name = computed(() => `${username.value}:${socket.value.id}@${hostname.value}`)
 
@@ -19,9 +24,12 @@ export const useServerStore = defineStore('server', () => {
 
       socket.value = io({ 
         path: '/api/ws/', 
+        transports: ["websocket"],
+        upgrade: false,
         autoConnect: false,
-        extraHeaders: {
-          Authorization: `Bearer ${token.value}`
+        withCredentials: true,
+        auth: {
+          token: token.value
         }
       })
 
@@ -36,6 +44,13 @@ export const useServerStore = defineStore('server', () => {
       socket.value.on("welcome", ({ host }) => {
         hostname.value = host
       })
+
+      // Always listen for incoming messages and add to store
+      socket.value.on('chat', (chat) => {
+        chat.self = false
+        chat.loading = false
+        chats.value.push(chat)
+      })
     }
 
     // For handling re-connect scenarios
@@ -44,11 +59,6 @@ export const useServerStore = defineStore('server', () => {
     }
 
     async function login() {
-      await axios.get('/api/user', {
-        headers: {
-          Authorization: `Bearer ${token.value}`
-        }
-      })
       socket.value.connect()
     }
 
@@ -60,12 +70,12 @@ export const useServerStore = defineStore('server', () => {
       socket.value.emit('chat', message, ack)
     }
 
-    function receiveMessageHandler(fn) {
-      socket.value.on('chat', fn)
+    function addChat(chat) {
+      chats.value.push(chat)
     }
 
     return { 
-      username, name, connected,
-      init, login, logout, sendMessage, receiveMessageHandler, connectionHandler 
+      username, name, connected, chats,
+      init, login, logout, sendMessage, connectionHandler, addChat
     }
 })

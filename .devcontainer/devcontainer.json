@@ -5,8 +5,6 @@
 	// https://github.com/devcontainers/images/tree/main/src
 	"image": "mcr.microsoft.com/devcontainers/base:bookworm",
 
-	"runArgs": ["--device=/dev/net/tun"],
-
 	// https://github.com/devcontainers/features/tree/main/src
 	"features": {
 		"ghcr.io/devcontainers/features/docker-in-docker:2": {
@@ -14,10 +12,7 @@
 			"enableNonRootDocker": "true",
 			"moby": "true"
 		},
-		"ghcr.io/devcontainers/features/node": {},
-		"ghcr.io/tailscale/codespace/tailscale": {
-      // Use `tailscale up --accept-routes` to enable tailscale
-    }
+		"ghcr.io/devcontainers/features/node": {}
 	},
 
 	// Configure tool-specific properties.
@@ -26,10 +21,8 @@
 			"extensions": [
 				"mhutchie.git-graph",
 				"mutantdino.resourcemonitor",
-				"github.vscode-github-actions",
-        "ms-azuretools.vscode-docker",
-        "Tailscale.vscode-tailscale",
-        "Vue.volar"
+				"ms-azuretools.vscode-docker",
+				"Vue.volar"
 			]
 		}
 	}
