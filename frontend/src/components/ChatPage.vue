@@ -1,6 +1,6 @@
 <script setup>
 import { useServerStore } from '@/stores/server';
-import { ref, useTemplateRef, nextTick, watch } from 'vue';
+import { ref, useTemplateRef, nextTick, watch, onMounted } from 'vue';
 
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
@@ -10,6 +10,11 @@ async function scrollTochatListBottom() {
   await nextTick()
   chatListBottom.value.$el.scrollIntoView({ behavior: 'smooth' })
 }
+
+// Scroll to bottom when component mounts (e.g., on reconnect)
+onMounted(() => {
+  scrollTochatListBottom()
+})
 
 // Auto-scroll when new messages arrive
 watch(() => server.chats.length, () => {
