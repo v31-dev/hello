@@ -45,8 +45,8 @@ Build and run:
 ```bash
 # Build with OIDC credentials
 docker build \
-  --build-arg VITE_AUTH_URL=your-oidc-provider-url \
-  --build-arg VITE_AUTH_CLIENT_ID=your-client-id \
+  --build-arg VITE_AUTH_URL=oidc-provider-url \
+  --build-arg VITE_AUTH_CLIENT_ID=client-id \
   -t hello-chat:latest \
   .
 
@@ -54,22 +54,22 @@ docker build \
 docker run -d \
   -p 4000:4000 \
   -e REDIS_URL=redis://default:password@redis-host:6379 \
-  -e AUTH_URL=your-oidc-provider-url \
-  -e AUTH_CLIENT_ID=your-client-id \
+  -e AUTH_URL=oidc-provider-url \
+  -e AUTH_CLIENT_ID=client-id \
   hello-chat:latest
 ```
 
 ### External Dependencies
 
-1. Your own OIDC provider
-2. A Redis instance
+1. **OIDC Provider** - For authentication
+2. **Redis** - For websocket across replicas
 
 ### Deploying to Dokploy
 
 1. Add a service of type Application and point to the repository using the Git provider with build type Dockerfile.
 2. Add **Build Arguments** in the Environment tab:
-   - `VITE_AUTH_URL` - Your OIDC provider URL
-   - `VITE_AUTH_CLIENT_ID` - Your OIDC client ID
+   - `VITE_AUTH_URL` - OIDC provider URL
+   - `VITE_AUTH_CLIENT_ID` - OIDC client ID
 3. Set **Environment Variables** in the Environment tab:
    - `REDIS_URL` - Full Redis connection string (e.g., `redis://user:pass@host:6379`)
    - `AUTH_URL` - OIDC provider base URL
