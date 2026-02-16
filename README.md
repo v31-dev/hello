@@ -14,17 +14,6 @@ There is no message persistence implemented.
 **External Services:**
 - **OIDC Provider** - Any OpenID Connect provider (e.g., Pocket ID, Auth0, Okta) for authentication
 
-## Authentication
-
-This application uses **OpenID Connect (OIDC)** for authentication. By default, it's configured for [Pocket ID](https://github.com/pocket-id/pocket-id) but can easily be switched to any OIDC provider.
-
-### Setting up Authentication
-
-1. Create an OIDC application in your provider (e.g., Pocket ID)
-2. Set the **callback URI** to: `http://localhost/callback` (or your production domain)
-3. Set the **post-logout redirect URI** to: `http://localhost/` (or your production domain)
-4. Update `.env` with your credentials.
-
 ## Local Development
 
 ### Prerequisites
@@ -39,11 +28,6 @@ docker compose up --build
 ```
 
 The application will be available at `http://localhost`. Access is routed through Nginx, which sits in front of both the frontend and backend components.
-
-### Development Features
-
-- **Backend hot-reload** - Changes trigger auto-restart
-- **Frontend hot-reload** - Vue components hot-reload without restart (via Vite)
 
 The local `docker-compose.yml` is only for development - it includes Redis, Nginx, and all dependencies for convenience.
 
