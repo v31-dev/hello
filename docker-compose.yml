@@ -24,7 +24,6 @@ services:
     build:
       context: frontend
       dockerfile: Dockerfile
-      target: development
     depends_on:
       - backend
     environment:
@@ -33,10 +32,8 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./frontend
-          target: /app
-          ignore:
-            - node_modules/
+          path: ./frontend/src
+          target: /app/src
 
   # Nginx reverse proxy for local development
   nginx:

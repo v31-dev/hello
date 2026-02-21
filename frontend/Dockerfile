@@ -1,4 +1,4 @@
-FROM node:lts-alpine AS base
+FROM node:lts-alpine
 
 # make the 'app' folder the current working directory
 WORKDIR /app
@@ -15,28 +15,4 @@ COPY . .
 ENV PORT 3000
 EXPOSE 3000
 
-
-################################################################################
-# Local development
-################################################################################
-FROM base AS development
-
 CMD [ "npm", "run", "dev"]
-################################################################################
-
-
-################################################################################
-# Production build
-################################################################################
-FROM base AS production
-
-ARG VITE_AUTH_URL
-ARG VITE_AUTH_CLIENT_ID
-
-ENV VITE_AUTH_URL=$VITE_AUTH_URL
-ENV VITE_AUTH_CLIENT_ID=$VITE_AUTH_CLIENT_ID
-
-RUN npm run build
-
-CMD [ "node", "server.js" ]
-################################################################################
