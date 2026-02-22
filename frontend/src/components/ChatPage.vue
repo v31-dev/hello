@@ -46,7 +46,7 @@ onMounted(() => {
     })
     chats.value.push(chat.value)
   }
-  
+
   authStore.receiveServerMessageHandler(_messageHandler)
   authStore.receiveMessageHandler(_messageHandler)
 })
@@ -56,14 +56,33 @@ onMounted(() => {
   <v-main>
     <v-container>
       <v-col>
-        <v-card v-for="(chat, index) in chats" :key="index" prepend-icon="mdi-account"
-          :color="chat.self ? 'blue' : null" :title="chat.user" class="mb-4">
-          <v-card-text>{{ chat.chat }}</v-card-text>
-          <v-card-actions v-if="chat.loading">
-            <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled
-              class="ps-0 pe-0 ms-0" />
-          </v-card-actions>
-        </v-card>
+        <div v-for="(chat, index) in chats" :key="index" class="mb-4">
+          <div v-if="chat.user === 'System'" class="d-flex justify-center">
+            <v-chip color="grey lighten-2" text-color="black">
+              {{ chat.chat }}
+            </v-chip>
+          </div>
+          <div v-else>
+            <div v-if="chat.self" class="d-flex justify-end">
+              <v-card class="self-card" color="blue" prepend-icon="mdi-account" :title="chat.user">
+                <v-card-text>{{ chat.chat }}</v-card-text>
+                <v-card-actions v-if="chat.loading">
+                  <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled
+                    class="ps-0 pe-0 ms-0" />
+                </v-card-actions>
+              </v-card>
+            </div>
+            <div v-else class="d-flex justify-start">
+              <v-card prepend-icon="mdi-account" :title="chat.user">
+                <v-card-text>{{ chat.chat }}</v-card-text>
+                <v-card-actions v-if="chat.loading">
+                  <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled
+                    class="ps-0 pe-0 ms-0" />
+                </v-card-actions>
+              </v-card>
+            </div>
+          </div>
+        </div>
         <v-spacer ref="chatListBottom" />
       </v-col>
       <v-footer app>
@@ -78,3 +97,9 @@ onMounted(() => {
     </v-container>
   </v-main>
 </template>
+
+<style scoped>
+.self-card .v-card-text {
+  text-align: right;
+}
+</style>

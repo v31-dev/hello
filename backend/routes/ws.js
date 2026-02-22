@@ -25,14 +25,14 @@ export default async function websocket(server, authMiddleware) {
     console.log(`User ${user} connected from ${socketID}`)
     socket.broadcast.emit('chat', {
       user: 'System',
-      chat: `${user} has connected...`,
+      chat: `${user} has connected`,
     })
 
     socket.on('disconnect', () => {
       console.log(`User ${user} disconnected from ${socketID}`)
       socket.broadcast.emit('chat', {
         user: 'System',
-        chat: `${user} has disconnected...`,
+        chat: `${user} has disconnected`,
       })
     })
 
