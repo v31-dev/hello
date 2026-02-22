@@ -1,11 +1,12 @@
 <script setup>
 import { ref, useTemplateRef, nextTick, watch, onMounted } from 'vue';
 import { useAuthStore } from '@/stores/auth'
+import { useChatStore } from '@/stores/chat'
 
 const authStore = useAuthStore()
+const chatStore = useChatStore()
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
-const chats = ref([])
 
 async function scrollTochatListBottom() {
   await nextTick()
@@ -13,7 +14,7 @@ async function scrollTochatListBottom() {
 }
 
 // Auto-scroll when new messages arrive
-watch(() => chats.value.length, () => {
+watch(() => chatStore.chats.length, () => {
   scrollTochatListBottom()
 })
 
@@ -29,7 +30,7 @@ function onClickSend(pMessage) {
     chat.value.loading = false
   })
 
-  chats.value.push(chat.value)
+  chatStore.chats.push(chat.value)
   message.value = ''
 }
 
@@ -44,7 +45,7 @@ onMounted(() => {
       chat: message.chat,
       loading: false
     })
-    chats.value.push(chat.value)
+    chatStore.chats.push(chat.value)
   }
 
   authStore.receiveServerMessageHandler(_messageHandler)
@@ -56,7 +57,7 @@ onMounted(() => {
   <v-main>
     <v-container>
       <v-col>
-        <div v-for="(chat, index) in chats" :key="index" class="mb-4">
+        <div v-for="(chat, index) in chatStore.chats" :key="index" class="mb-4">
           <div v-if="chat.user === 'System'" class="d-flex justify-center">
             <v-chip color="grey lighten-2" text-color="black">
               {{ chat.chat }}
