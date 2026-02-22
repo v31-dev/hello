@@ -26,6 +26,11 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Socket initialization is only after user auth
   const initializeSocket = async () => {
+    // If a previous socket exists, disconnect it first to avoid duplicate listeners
+    if (socket.value) {
+      try { socket.value.disconnect() } catch (e) { /* ignore */ }
+    }
+
     // Assign to the store-level `socket` ref (don't shadow the outer variable)
     socket.value = io({
       path: '/api/ws/',
@@ -106,11 +111,19 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function receiveMessageHandler(fn) {
+    if (!socket.value) return () => {}
     socket.value.on('chat', fn)
+    return () => {
+      try { socket.value.off('chat', fn) } catch (e) { /* ignore */ }
+    }
   }
 
   function receiveServerMessageHandler(fn) {
+    if (!socket.value) return () => {}
     socket.value.on('welcome', fn)
+    return () => {
+      try { socket.value.off('welcome', fn) } catch (e) { /* ignore */ }
+    }
   }
 
   return {

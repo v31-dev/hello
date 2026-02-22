@@ -1,5 +1,5 @@
 <script setup>
-import { ref, useTemplateRef, nextTick, watch, onMounted } from 'vue';
+import { ref, useTemplateRef, nextTick, watch, onMounted, onUnmounted } from 'vue';
 import { useAuthStore } from '@/stores/auth'
 import { useChatStore } from '@/stores/chat'
 
@@ -7,6 +7,10 @@ const authStore = useAuthStore()
 const chatStore = useChatStore()
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
+
+// Keep track of unsubscribe functions for message handlers
+let _unsubServer = null
+let _unsubChat = null
 
 async function scrollTochatListBottom() {
   await nextTick()
@@ -30,7 +34,7 @@ function onClickSend(pMessage) {
     chat.value.loading = false
   })
 
-  chatStore.chats.push(chat.value)
+  chatStore.addChat(chat.value)
   message.value = ''
 }
 
@@ -45,11 +49,17 @@ onMounted(() => {
       chat: message.chat,
       loading: false
     })
-    chatStore.chats.push(chat.value)
+    chatStore.addChat(chat.value)
   }
 
-  authStore.receiveServerMessageHandler(_messageHandler)
-  authStore.receiveMessageHandler(_messageHandler)
+  _unsubServer = authStore.receiveServerMessageHandler(_messageHandler)
+  _unsubChat = authStore.receiveMessageHandler(_messageHandler)
+})
+
+// Clean up message handlers on unmount to prevent memory leaks
+onUnmounted(() => {
+  if (typeof _unsubServer === 'function') _unsubServer()
+  if (typeof _unsubChat === 'function') _unsubChat()
 })
 </script>
 
