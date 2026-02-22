@@ -55,11 +55,6 @@ export const useAuthStore = defineStore('auth', () => {
       console.error('Received message:', msg)
       logout()
     })
-
-    socket.value.on('connect_error', (msg) => {
-      console.error('Received message:', msg)
-      logout()
-    })
   }
 
   const init = async () => {
