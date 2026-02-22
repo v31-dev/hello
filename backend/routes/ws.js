@@ -38,6 +38,8 @@ export default async function websocket(server, authMiddleware) {
 
     socket.emit('welcome', {
       host: HOST,
+      user: "System",
+      chat: 'Welcome to the chat room! Please be civil and have fun!'
     })
   })
 }
