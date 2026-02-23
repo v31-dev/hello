@@ -55,10 +55,22 @@ export const useAuthStore = defineStore('auth', () => {
       serverName.value = host
     })
 
-    // Listen for system messages which will be auth related
-    socket.value.on('message', (msg) => {
-      console.error('Received message:', msg)
-      logout()
+    // Only perform logout for authentication-related errors sent from the server.
+    socket.value.on('connect_error', (err) => {
+      console.error('Connection error:', err)
+
+      // Server sets `error.data = { code: <code>, message: <msg> }` in auth middleware.
+      const code = err?.data?.code || err?.code || err?.message
+
+      // Codes/messages emitted by backend auth middleware
+      const authCodes = ['TokenExpiredError', 'AUTH_MISSING', 'INVALID_AUDIENCE']
+      const authMessages = ['Token expired', 'Authorization token missing', 'Token not issued for this client.']
+
+      if (authCodes.includes(code) || authMessages.includes(code)) {
+        logout()
+      } else {
+        // Non-auth connect errors: handle or ignore (don't force logout)
+      }
     })
   }
 
