@@ -19,6 +19,7 @@ export const useAuthStore = defineStore('auth', () => {
     post_logout_redirect_uri: `${window.location.origin}/`,
     response_type: 'code',
     scope: 'openid profile',
+    automaticSilentRenew: true,
     userStore: new WebStorageStateStore({ store: window.localStorage }),
   })
 
@@ -75,38 +76,45 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const init = async () => {
-    try {
-      // If a user is already stored, use it and initialize the socket
-      const existingUser = await userManager.getUser()
-      if (existingUser) {
-        username.value = existingUser.profile.preferred_username
-        await initializeSocket()
-        return
-      }
-
-      // If we're on the OIDC callback route, process the redirect response
-      if (window.location.pathname === '/callback') {
+    // If a user is already stored, use it and initialize the socket
+    const existingUser = await userManager.getUser()
+    if (existingUser) {
+      // If the token is expired, try silent renew first before redirecting to login
+      if (existingUser.expired) {
         try {
-          await userManager.signinRedirectCallback()
-          // Remove the callback query params from the URL
-          window.history.replaceState({}, document.title, '/')
-          // after callback, user should be available
-          const user = await userManager.getUser()
-          if (user) {
-            username.value = user.profile.preferred_username
-            await initializeSocket()
-          }
+          await userManager.signinSilent()
+        } catch (silentError) {
+          console.error('Silent signin error:', silentError)
+          await userManager.signinRedirect() // fallback to redirect if silent fails
           return
-        } catch (cbError) {
-          console.error('Callback processing error:', cbError)
         }
       }
-
-      // No user and not on callback -> start signin flow
-      await userManager.signinRedirect()
-    } catch (error) {
-      console.error('Login error:', error)
+      
+      username.value = existingUser.profile.preferred_username
+      await initializeSocket()
+      return
     }
+
+    // If we're on the OIDC callback route, process the redirect response
+    if (window.location.pathname === '/callback') {
+      try {
+        await userManager.signinRedirectCallback()
+        // Remove the callback query params from the URL
+        window.history.replaceState({}, document.title, '/')
+        // after callback, user should be available
+        const user = await userManager.getUser()
+        if (user) {
+          username.value = user.profile.preferred_username
+          await initializeSocket()
+        }
+        return
+      } catch (cbError) {
+        console.error('Callback processing error:', cbError)
+      }
+    }
+
+    // No user and not on callback -> start signin flow
+    await userManager.signinRedirect()
   }
 
   const logout = async () => {
@@ -123,7 +131,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function receiveMessageHandler(fn) {
-    if (!socket.value) return () => {}
+    if (!socket.value) return () => { }
     socket.value.on('chat', fn)
     return () => {
       try { socket.value.off('chat', fn) } catch (e) { /* ignore */ }
@@ -131,7 +139,7 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   function receiveServerMessageHandler(fn) {
-    if (!socket.value) return () => {}
+    if (!socket.value) return () => { }
     socket.value.on('welcome', fn)
     return () => {
       try { socket.value.off('welcome', fn) } catch (e) { /* ignore */ }
