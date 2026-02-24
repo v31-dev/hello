@@ -1,18 +1,15 @@
 import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 
-import { createPinia } from 'pinia'
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate'
+import App from '@/App.vue'
+import { useAuthStore } from '@/stores/auth'
 
-import App from './App.vue'
-import { useAuth } from './composables/useAuth'
-
-// Initialize auth
-const { getUser } = useAuth()
 
 const pinia = createPinia()
 pinia.use(piniaPluginPersistedstate)
@@ -23,10 +20,11 @@ const vuetify = createVuetify({
 })
 
 const app = createApp(App)
+app.use(pinia)
+app.use(vuetify)
 
-// Load existing session before mounting
-getUser().then(() => {
-  app.use(pinia)
-  app.use(vuetify)
+// Initialize auth and socket connection before mounting the app
+const authStore = useAuthStore()
+authStore.init().then(() => { 
   app.mount('#app')
 })

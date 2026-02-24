@@ -1,86 +1,116 @@
 <script setup>
-import { useServerStore } from '@/stores/server';
-import { ref, useTemplateRef, nextTick, watch, onMounted } from 'vue';
+import { ref, useTemplateRef, nextTick, watch, onMounted, onUnmounted } from 'vue';
+import { useAuthStore } from '@/stores/auth'
+import { useChatStore } from '@/stores/chat'
 
+const authStore = useAuthStore()
+const chatStore = useChatStore()
 const chatListBottom = useTemplateRef('chatListBottom')
 const message = ref('')
-const server = useServerStore()
+
+// Keep track of unsubscribe functions for message handlers
+let _unsubServer = null
+let _unsubChat = null
 
 async function scrollTochatListBottom() {
   await nextTick()
   chatListBottom.value.$el.scrollIntoView({ behavior: 'smooth' })
 }
 
-// Scroll to bottom when component mounts (e.g., on reconnect)
-onMounted(() => {
-  scrollTochatListBottom()
-  
-  // Register reconnection handler
-  server.connectionHandler(() => {
-    if (server.username) {
-      server.login()
-    }
-  })
-})
-
 // Auto-scroll when new messages arrive
-watch(() => server.chats.length, () => {
+watch(() => chatStore.chats.length, () => {
   scrollTochatListBottom()
 })
 
-function sendMessage(pmessage) {
+function onClickSend(pMessage) {
   const chat = ref({
     self: true,
-    user: server.username,
-    chat: pmessage,
+    user: authStore.username,
+    chat: pMessage,
     loading: true
   })
 
-  server.sendMessage(pmessage, () => {
+  authStore.sendMessage(pMessage, () => {
     chat.value.loading = false
   })
-  
-  server.addChat(chat.value)
+
+  chatStore.addChat(chat.value)
   message.value = ''
 }
+
+// Scroll to bottom when component mounts (e.g., on reconnect)
+onMounted(() => {
+  scrollTochatListBottom()
+
+  const _messageHandler = (message) => {
+    const chat = ref({
+      self: false,
+      user: message.user,
+      chat: message.chat,
+      loading: false
+    })
+    chatStore.addChat(chat.value)
+  }
+
+  _unsubServer = authStore.receiveServerMessageHandler(_messageHandler)
+  _unsubChat = authStore.receiveMessageHandler(_messageHandler)
+})
+
+// Clean up message handlers on unmount to prevent memory leaks
+onUnmounted(() => {
+  if (typeof _unsubServer === 'function') _unsubServer()
+  if (typeof _unsubChat === 'function') _unsubChat()
+})
 </script>
 
 <template>
   <v-main>
     <v-container>
       <v-col>
-        <v-card v-for="(chat, index) in server.chats" :key="index"
-          prepend-icon="mdi-account" :color="chat.self ? 'blue' : null"
-          :title="chat.user"
-          class="mb-4">
-          <v-card-text>{{chat.chat}}</v-card-text>
-          <v-card-actions v-if="chat.loading">
-            <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled class="ps-0 pe-0 ms-0"/>
-          </v-card-actions>
-        </v-card>
+        <div v-for="(chat, index) in chatStore.chats" :key="index" class="mb-4">
+          <div v-if="chat.user === 'System'" class="d-flex justify-center">
+            <v-chip color="grey lighten-2" text-color="black">
+              {{ chat.chat }}
+            </v-chip>
+          </div>
+          <div v-else>
+            <div v-if="chat.self" class="d-flex justify-end">
+              <v-card class="self-card" color="blue" prepend-icon="mdi-account" :title="chat.user">
+                <v-card-text>{{ chat.chat }}</v-card-text>
+                <v-card-actions v-if="chat.loading">
+                  <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled
+                    class="ps-0 pe-0 ms-0" />
+                </v-card-actions>
+              </v-card>
+            </div>
+            <div v-else class="d-flex justify-start">
+              <v-card prepend-icon="mdi-account" :title="chat.user">
+                <v-card-text>{{ chat.chat }}</v-card-text>
+                <v-card-actions v-if="chat.loading">
+                  <v-btn :prepend-icon="'mdi-check'" slim size="x-small" :loading="chat.loading" disabled
+                    class="ps-0 pe-0 ms-0" />
+                </v-card-actions>
+              </v-card>
+            </div>
+          </div>
+        </div>
         <v-spacer ref="chatListBottom" />
       </v-col>
       <v-footer app>
-        <v-text-field
-            v-model="message"
-            clear-icon="mdi-close-circle"
-            label="Message"
-            type="text"
-            clearable
-            @keypress.enter="message.trim() == '' ? null : sendMessage(message)"
-            @click:clear="message = ''"
-            class="align-center justify-center"
-          >
-            <template #append>
-              <v-btn
-                icon="mdi-send"
-                variant="text"
-                :disabled="message.trim() === ''"
-                @click="sendMessage(message)"
-              />
-            </template>
-          </v-text-field>
+        <v-text-field v-model="message" clear-icon="mdi-close-circle" label="Message" type="text" clearable
+          @keypress.enter="message.trim() == '' ? null : onClickSend(message)" @click:clear="message = ''"
+          class="align-center justify-center">
+          <template #append>
+            <v-btn icon="mdi-send" variant="text" :disabled="message.trim() === ''" @click="onClickSend(message)" />
+          </template>
+        </v-text-field>
       </v-footer>
     </v-container>
   </v-main>
 </template>
+
+<style scoped>
+.self-card .v-card-text {
+  text-align: right;
+}
+</style>

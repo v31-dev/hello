@@ -23,9 +23,17 @@ export default async function websocket(server, authMiddleware) {
     const socketID = socket.id
     const user = socket.request.user.preferred_username
     console.log(`User ${user} connected from ${socketID}`)
+    socket.broadcast.emit('chat', {
+      user: 'System',
+      chat: `${user} has connected`,
+    })
 
     socket.on('disconnect', () => {
       console.log(`User ${user} disconnected from ${socketID}`)
+      socket.broadcast.emit('chat', {
+        user: 'System',
+        chat: `${user} has disconnected`,
+      })
     })
 
     socket.on('chat', (message, ack) => {
@@ -38,6 +46,8 @@ export default async function websocket(server, authMiddleware) {
 
     socket.emit('welcome', {
       host: HOST,
+      user: 'System',
+      chat: 'Welcome to the chat room!'
     })
   })
 }

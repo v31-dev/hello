@@ -18,20 +18,12 @@ services:
       - AUTH_URL=${AUTH_URL}
       - AUTH_CLIENT_ID=${AUTH_CLIENT_ID}
       - NODE_ENV=development
-    develop:
-      watch:
-        - action: sync+restart
-          path: ./backend
-          target: /app
-          ignore:
-            - node_modules/
 
   # Frontend for local development
   frontend:
     build:
       context: frontend
       dockerfile: Dockerfile
-      target: development
     depends_on:
       - backend
     environment:
@@ -40,10 +32,8 @@ services:
     develop:
       watch:
         - action: sync
-          path: ./frontend
-          target: /app
-          ignore:
-            - node_modules/
+          path: ./frontend/src
+          target: /app/src
 
   # Nginx reverse proxy for local development
   nginx:
