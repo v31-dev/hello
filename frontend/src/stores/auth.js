@@ -91,7 +91,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       if (callbackUser) {
         username.value = callbackUser.profile.preferred_username
-        token.value = callbackUser.access_token
+        token.value = callbackUser.id_token
       }
       
       await initializeSocket()
@@ -114,7 +114,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       if (user) {
         username.value = user.profile.preferred_username
-        token.value = user.access_token
+        token.value = user.id_token
       }
 
       await initializeSocket()
