@@ -4,6 +4,7 @@ import { createClient } from '@redis/client'
 const redisCredentials = (label) => ({
   url: process.env.REDIS_URL,
   socket: {
+    servername: new URL(process.env.REDIS_URL).hostname,
     reconnectStrategy: (attempts) => {
       console.log(`Redis client ${label} reconnecting attempt ${attempts + 1}...`)
       return 5000
